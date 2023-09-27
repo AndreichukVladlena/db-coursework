@@ -1,6 +1,84 @@
-### Система онлайн-регистрации и управления мероприятиями
+##Система онлайн-регистрации и управления мероприятиями
 
-### Андрейчук Владлена Витальевна, 153501
+##Андрейчук Владлена Витальевна, 153501
+
+## Сущности
+
+* ```User``` 
+  
+    + id BIGSERIAL PRIMARY KEY NOT NULL,
+    + name VARCHAR(50) NOT NULL,
+    + email VARCHAR(50) UNIQUE NOT NULL,
+    + password VARCHAR(255) NOT NULL,
+    + role VARCHAR(50) NOT NULL
+  
+* ```Event```
+  
+    + id BIGSERIAL PRIMARY KEY NOT NULL,
+    + name VARCHAR(100) NOT NULL,
+    + description TEXT,
+    + image VARCHAR(255),
+    + organizer_id BIGINT REFERENCES user(id) NOT NULL
+  
+* ```Ticket```
+  
+    + id BIGSERIAL PRIMARY KEY NOT NULL,
+    + event_id BIGINT REFERENCES event(id) NOT NULL,
+    + participant_id BIGINT REFERENCES user(id) NOT NULL,
+    + ticket_code VARCHAR(50) NOT NULL
+  
+* ```EventSchedule```
+  
+    + id BIGSERIAL PRIMARY KEY NOT NULL,
+    + event_id BIGINT REFERENCES event(id) NOT NULL,
+    + start_date DATE NOT NULL,
+    + end_date DATE NOT NULL,
+    + time TIME NOT NULL,
+    + location VARCHAR(100) NOT NULL,
+    + description TEXT
+  
+* ```ActivityLog``` 
+  
+    + id BIGSERIAL PRIMARY KEY NOT NULL,
+    + user_id BIGINT REFERENCES user(id) NOT NULL,
+    + event_id BIGINT REFERENCES event(id),
+    + timestamp TIMESTAMP NOT NULL,
+    + description TEXT
+  
+* ```Role``` 
+  
+    + id BIGSERIAL PRIMARY KEY NOT NULL,
+    + name VARCHAR(50) UNIQUE NOT NULL
+  
+* ```EventCategory```
+  
+    + id BIGSERIAL PRIMARY KEY NOT NULL,
+    + name VARCHAR(50) UNIQUE NOT NULL
+  
+* ```Review```
+  
+    + id BIGSERIAL PRIMARY KEY NOT NULL,
+    + user_id BIGINT REFERENCES user(id) NOT NULL,
+    + event_id BIGINT REFERENCES event(id) NOT NULL,
+    + text TEXT NOT NULL,
+    + timestamp TIMESTAMP NOT NULL
+  
+* ```EventImage``` 
+
+    + id BIGSERIAL PRIMARY KEY NOT NULL,
+    + event_id BIGINT REFERENCES event(id) NOT NULL,
+    + image_path VARCHAR(255),
+    + description TEXT,
+    + upload_date TIMESTAMP NOT NULL
+  
+* ```Payment```
+
+    + id BIGSERIAL PRIMARY KEY NOT NULL,
+    + user_id BIGINT REFERENCES user(id) NOT NULL,
+    + ticket_id BIGINT REFERENCES ticket(id) NOT NULL,
+    + amount DECIMAL NOT NULL,
+    + payment_date TIMESTAMP NOT NULL  
+
 
 ## Функциональные требования к системе онлайн-регистрации и управления мероприятиями
 * 1. **Авторизация и аутентификация**
@@ -72,3 +150,7 @@
     + 6.2 Хранение журнала
 
             Журнал должен храниться в безопасной и защищенной базе данных для последующего анализа и мониторинга.
+
+
+## Схема БД
+![Alt text](<Диаграмма без названия.drawio.png>)
