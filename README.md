@@ -1,6 +1,6 @@
-##Система онлайн-регистрации и управления мероприятиями
+## Система онлайн-регистрации и управления мероприятиями
 
-##Андрейчук Владлена Витальевна, 153501
+## Андрейчук Владлена Витальевна, 153501
 
 ## Сущности
 
@@ -10,22 +10,28 @@
     + name VARCHAR(50) NOT NULL,
     + email VARCHAR(50) UNIQUE NOT NULL,
     + password VARCHAR(255) NOT NULL,
-    + role VARCHAR(50) NOT NULL
+    + role_id BIGINT REFERENCES role(id) NOT NULL
+    +     Связи:
+            Один пользователь может быть связан с множеством мероприятий как организатор или участник.
   
 * ```Event```
   
     + id BIGSERIAL PRIMARY KEY NOT NULL,
     + name VARCHAR(100) NOT NULL,
     + description TEXT,
-    + image VARCHAR(255),
+    + image_id BIGINT REFERENCES image(id) NOT NULL,
     + organizer_id BIGINT REFERENCES user(id) NOT NULL
+    +     Связи:
+            Множество мероприятий могут быть организованы одним пользователем (Организатором).
   
 * ```Ticket```
   
     + id BIGSERIAL PRIMARY KEY NOT NULL,
     + event_id BIGINT REFERENCES event(id) NOT NULL,
-    + participant_id BIGINT REFERENCES user(id) NOT NULL,
+    + user_id BIGINT REFERENCES user(id) NOT NULL,
     + ticket_code VARCHAR(50) NOT NULL
+    +     Связи:
+           Билет связан с одним мероприятием и одним участником.
   
 * ```EventSchedule```
   
@@ -33,51 +39,76 @@
     + event_id BIGINT REFERENCES event(id) NOT NULL,
     + start_date DATE NOT NULL,
     + end_date DATE NOT NULL,
-    + time TIME NOT NULL,
+    + duration TIME NOT NULL,
     + location VARCHAR(100) NOT NULL,
     + description TEXT
+    +     Связи:
+           Несколько расписаний мероприятия может быть привязано к одному мероприятию.
+  
   
 * ```ActivityLog``` 
   
     + id BIGSERIAL PRIMARY KEY NOT NULL,
     + user_id BIGINT REFERENCES user(id) NOT NULL,
-    + event_id BIGINT REFERENCES event(id),
-    + timestamp TIMESTAMP NOT NULL,
-    + description TEXT
+    + activity_id BIGINT REFERENCES event(id),
+    + date DATE NOT NULL,
+    + time TIME NOT NULL
+    +     Связи:
+            Журнал авторизации связан с пользователем и активностью.
+
+* ```Activity``` 
+  
+    + id BIGSERIAL PRIMARY KEY NOT NULL,
+    + name VARCHAR(50) UNIQUE NOT NULL
+    +     Связи:
+            Одна активность связана с одной записью в журнал актиностей.
+
   
 * ```Role``` 
   
     + id BIGSERIAL PRIMARY KEY NOT NULL,
     + name VARCHAR(50) UNIQUE NOT NULL
+    +     Связи:
+            Роль может быть назначена множеству пользователей.
   
 * ```EventCategory```
   
     + id BIGSERIAL PRIMARY KEY NOT NULL,
     + name VARCHAR(50) UNIQUE NOT NULL
+    +     Связи:
+            Мероприятие может принадлежать одной или нескольким категориям.
+  
   
 * ```Review```
   
     + id BIGSERIAL PRIMARY KEY NOT NULL,
     + user_id BIGINT REFERENCES user(id) NOT NULL,
     + event_id BIGINT REFERENCES event(id) NOT NULL,
-    + text TEXT NOT NULL,
-    + timestamp TIMESTAMP NOT NULL
+    + content TEXT NOT NULL,
+    + date DATE NOT NULL,
+    + time TIME NOT NULL
+    +     Связи:
+            Отзыв связан с пользователем и мероприятием.
   
 * ```EventImage``` 
 
     + id BIGSERIAL PRIMARY KEY NOT NULL,
     + event_id BIGINT REFERENCES event(id) NOT NULL,
-    + image_path VARCHAR(255),
-    + description TEXT,
-    + upload_date TIMESTAMP NOT NULL
+    + image_path VARCHAR(255) UNIQUE NOT NULL,
+    + description TEXT
+    +     Связи:
+            Фотография мероприятия привязана к одному мероприятию. К одному мероприятию могут быть привязаны несколько изображений.
   
 * ```Payment```
 
     + id BIGSERIAL PRIMARY KEY NOT NULL,
     + user_id BIGINT REFERENCES user(id) NOT NULL,
     + ticket_id BIGINT REFERENCES ticket(id) NOT NULL,
-    + amount DECIMAL NOT NULL,
-    + payment_date TIMESTAMP NOT NULL  
+    + sum DECIMAL NOT NULL,
+    + date DATE NOT NULL
+    +     Связи:
+            Платеж связан с определенным пользователем и билетом.
+  
 
 
 ## Функциональные требования к системе онлайн-регистрации и управления мероприятиями
@@ -151,6 +182,6 @@
 
             Журнал должен храниться в безопасной и защищенной базе данных для последующего анализа и мониторинга.
 
+## Ненормализованная схема БД
+![Alt text](notnormalized.drawio(1).png)
 
-## Схема БД
-![Alt text](<Диаграмма без названия.drawio.png>)
