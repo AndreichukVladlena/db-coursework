@@ -41,7 +41,8 @@
     + end_date DATE NOT NULL,
     + duration TIME NOT NULL,
     + location VARCHAR(100) NOT NULL,
-    + description TEXT
+    + description TEXT,
+    + cost DECIMAL NOT NULL
     +     Связи:
            Несколько расписаний мероприятия может быть привязано к одному мероприятию.
   
@@ -103,11 +104,30 @@
 
     + id BIGSERIAL PRIMARY KEY NOT NULL,
     + user_id BIGINT REFERENCES user(id) NOT NULL,
-    + ticket_id BIGINT REFERENCES ticket(id) NOT NULL,
+    + cart_id BIGINT REFERENCES cart(id) NOT NULL,
     + sum DECIMAL NOT NULL,
     + date DATE NOT NULL
     +     Связи:
-            Платеж связан с определенным пользователем и билетом.
+            Платеж связан с определенным пользователем и корзиной.Теперь платеж относится к корзине, которая содержит билеты, оплаченные пользователем.
+
+* ```Cart```
+
+    + id BIGSERIAL PRIMARY KEY NOT NULL,
+    + user_id BIGINT REFERENCES user(id) NOT NULL,
+    + result_cost DECIMAL NOT NULL,
+    +     Связи:
+              Одна корзина связана с одним пользователем. В корзине может быть множество билетов (связь многие ко многим с Ticket).
+
+* ```CartTicket```
+
+    + cart_id BIGINT REFERENCES cart(id) NOT NULL,
+    + ticket_id BIGINT REFERENCES ticket(id) NOT NULL,
+    + PRIMARY KEY (cart_id, ticket_id)
+    +     Связи:
+              Связующая таблица между корзиной и билетами. Позволяет хранить несколько билетов в одной корзине.
+
+
+
   
 
 
@@ -183,7 +203,7 @@
             Журнал должен храниться в безопасной и защищенной базе данных для последующего анализа и мониторинга.
 
 ## Ненормализованная схема БД
-![Alt text](notnormalized.drawio(1).png)
+![Alt text](notnormalized.png)
 
 ## Схема БД
 ![Alt text](image.png)
