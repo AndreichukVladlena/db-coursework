@@ -185,3 +185,5 @@
 ## Ненормализованная схема БД
 ![Alt text](notnormalized.drawio(1).png)
 
+## Схема БД
+![Alt text](image.png)
