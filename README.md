@@ -71,6 +71,15 @@
     + name VARCHAR(50) UNIQUE NOT NULL
     +     Связи:
             Роль может быть назначена множеству пользователей.
+
+
+* ```UserRoles```
+
+    + user_id BIGINT REFERENCES cart(id) NOT NULL,
+    + cart_id BIGINT REFERENCES ticket(id) NOT NULL,
+    + PRIMARY KEY (cart_id, ticket_id)
+    +     Связи:
+              Связующая таблица между пользователями и их ролями. Позволяет ассоциировать несколько ролей с одним пользователем.
   
 * ```EventCategory```
   
@@ -117,14 +126,6 @@
     + result_cost DECIMAL NOT NULL,
     +     Связи:
               Одна корзина связана с одним пользователем. В корзине может быть множество билетов (связь многие ко многим с Ticket).
-
-* ```CartTicket```
-
-    + cart_id BIGINT REFERENCES cart(id) NOT NULL,
-    + ticket_id BIGINT REFERENCES ticket(id) NOT NULL,
-    + PRIMARY KEY (cart_id, ticket_id)
-    +     Связи:
-              Связующая таблица между корзиной и билетами. Позволяет хранить несколько билетов в одной корзине.
 
 
 
@@ -203,7 +204,7 @@
             Журнал должен храниться в безопасной и защищенной базе данных для последующего анализа и мониторинга.
 
 ## Ненормализованная схема БД
-![Alt text](notnormalized.png)
+![Alt text](notnormalized.drawio(1)(1)(3).png)
 
 ## Схема БД
-![Alt text](image.png)
+![Alt text](<Диаграмма без названия.drawio(1)(5).png>)
