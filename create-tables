@@ -1,0 +1,93 @@
+CREATE TABLE EventCategories (
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    event_id BIGINT REFERENCES Event(id) NOT NULL,
+    category_id BIGINT REFERENCES Category(id) NOT NULL,
+    PRIMARY KEY (event_id, category_id)
+);
+
+CREATE TABLE "User" (
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    email VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role_id BIGINT REFERENCES Role(id) NOT NULL
+);
+
+CREATE TABLE Event (
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    image_id BIGINT REFERENCES EventImage(id) NOT NULL,
+    organizer_id BIGINT REFERENCES "User"(id) NOT NULL
+);
+
+CREATE TABLE Ticket (
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    eventschedule_id BIGINT REFERENCES Event(id) NOT NULL,
+    user_id BIGINT REFERENCES "User"(id) NOT NULL,
+    ticket_code VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE EventSchedule (
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    event_id BIGINT REFERENCES Event(id) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    duration TIME NOT NULL,
+    location VARCHAR(100) NOT NULL,
+    description TEXT,
+    cost DECIMAL NOT NULL
+);
+
+CREATE TABLE ActivityLog (
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    user_id BIGINT REFERENCES "User"(id) NOT NULL,
+    activity_id BIGINT REFERENCES Event(id),
+    date DATE NOT NULL,
+    time TIME NOT NULL
+);
+
+CREATE TABLE Activity (
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    name VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE Role (
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    name VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE Category (
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    name VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE Review (
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    user_id BIGINT REFERENCES "User"(id) NOT NULL,
+    event_id BIGINT REFERENCES Event(id) NOT NULL,
+    content TEXT NOT NULL,
+    date DATE NOT NULL,
+    time TIME NOT NULL
+);
+
+CREATE TABLE EventImage (
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    event_id BIGINT REFERENCES Event(id) NOT NULL,
+    image_path VARCHAR(255) UNIQUE NOT NULL,
+    description TEXT
+);
+
+CREATE TABLE Payment (
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    user_id BIGINT REFERENCES "User"(id) NOT NULL,
+    cart_id BIGINT REFERENCES Ticket(id) NOT NULL,
+    sum DECIMAL NOT NULL,
+    date DATE NOT NULL
+);
+
+CREATE TABLE Cart (
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    user_id BIGINT REFERENCES "User"(id) NOT NULL,
+    result_cost DECIMAL NOT NULL
+);

@@ -1,0 +1,22 @@
+-- ПРЕДСТАВЛЕНИЯ ДАННЫХ
+
+-- Представление с информацией о пользователях и их ролях
+CREATE VIEW UserRolesView AS
+SELECT u.id AS user_id, u.name AS user_name, r.name AS role_name
+FROM "User" u
+JOIN UserRoles ur ON u.id = ur.user_id
+JOIN Role r ON ur.role_id = r.id;
+
+-- Представление с информацией о мероприятиях и их категориях
+CREATE VIEW EventCategoriesView AS
+SELECT e.id AS event_id, e.name AS event_name, c.name AS category_name
+FROM Event e
+JOIN EventCategories ec ON e.id = ec.event_id
+JOIN Category c ON ec.category_id = c.id;
+
+-- Представление с информацией об отзывах пользователей о мероприятиях
+CREATE VIEW EventReviewsView AS
+SELECT r.id AS review_id, u.name AS user_name, e.name AS event_name, r.content AS review_content, r.date AS review_date, r.time AS review_time
+FROM Review r
+JOIN "User" u ON r.user_id = u.id
+JOIN Event e ON r.event_id = e.id;

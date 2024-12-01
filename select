@@ -1,0 +1,84 @@
+-- Представление с информацией о мероприятиях и их категориях
+CREATE VIEW EventCategoriesView AS
+SELECT e.id AS event_id, e.name AS event_name, c.name AS category_name
+FROM Event e
+JOIN EventCategories ec ON e.id = ec.event_id
+JOIN Category c ON ec.category_id = c.id;
+
+SELECT * FROM EventCategoriesView;
+
+-- Представление с информацией об отзывах пользователей о мероприятиях
+CREATE VIEW EventReviewsView AS
+SELECT r.id AS review_id, u.name AS user_name, e.name AS event_name, r.content AS review_content, r.date AS review_date, r.time AS review_time
+FROM Review r
+JOIN "User" u ON r.user_id = u.id
+JOIN Event e ON r.event_id = e.id;
+
+SELECT * FROM EventReviewsView;
+
+-- Выборка с условием
+SELECT * FROM EventSchedule WHERE DATE(end_date) <= '2023-12-03' AND DATE(start_date) >= '2023-10-01';
+
+-- Вложенный запрос
+SELECT * FROM "User" WHERE id IN (SELECT user_id FROM Ticket WHERE event_id = 1);
+
+-- JOIN запрос с условием
+SELECT Event.name, "User".name as organizer_name
+FROM Event
+INNER JOIN "User" ON Event.organizer_id = "User".id
+WHERE Event.id = 1;
+
+-- INNER JOIN
+SELECT Event.name, Category.name
+FROM Event
+INNER JOIN EventCategories ON Event.id = EventCategories.event_id
+INNER JOIN Category ON EventCategories.category_id = Category.id;
+
+-- LEFT OUTER JOIN
+SELECT "User".name, Event.name
+FROM "User"
+LEFT OUTER JOIN Event ON "User".id = Event.organizer_id;
+
+-- CROSS JOIN
+SELECT "User".name, Event.name
+FROM "User"
+CROSS JOIN Event;
+
+-- GROUP BY с COUNT
+SELECT organizer_id, COUNT(*) as event_count
+FROM Event
+GROUP BY organizer_id;
+
+-- HAVING с SUM
+SELECT event_id, SUM(cost) as total_cost
+FROM EventSchedule
+GROUP BY event_id
+HAVING SUM(cost) > 10;
+
+-- Оконные функции с PARTITION
+SELECT event_id, start_date, SUM(cost) OVER (PARTITION BY event_id ORDER BY start_date) as cumulative_cost
+FROM EventSchedule;
+
+-- Оконные функции с ROW_NUMBER
+SELECT event_id, start_date, ROW_NUMBER() OVER (PARTITION BY event_id ORDER BY start_date) as event_occurrence
+FROM EventSchedule;
+
+-- EXISTS
+SELECT * FROM "User" WHERE EXISTS (SELECT 1 FROM Ticket WHERE Ticket.user_id = "User".id);
+
+-- CASE
+SELECT event_id, description, 
+       CASE 
+            WHEN cost > 100 THEN 'Expensive'
+            WHEN cost > 50 THEN 'Moderate'
+            ELSE 'Affordable'
+        END as cost_category
+FROM EventSchedule;
+
+-- UNION
+SELECT name FROM Event
+UNION
+SELECT name FROM Activity;
+
+-- EXPLAIN
+EXPLAIN SELECT * FROM Event WHERE organizer_id = 1;

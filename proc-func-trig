@@ -1,0 +1,178 @@
+--Триггер обновления результирующей суммы корзины после добавления/удаления строки в таблицу ticket
+
+CREATE OR REPLACE FUNCTION update_cart_cost()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE Cart
+    SET result_cost = (
+        SELECT COALESCE(SUM(EventSchedule.cost), 0)
+        FROM Ticket
+        JOIN EventSchedule ON Ticket.eventschedule_id = EventSchedule.id
+        WHERE Ticket.user_id = NEW.user_id
+    )
+    WHERE user_id = NEW.user_id;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER after_insert_delete_ticket
+AFTER INSERT OR DELETE
+ON Ticket
+FOR EACH ROW
+EXECUTE FUNCTION update_cart_cost();
+
+INSERT INTO Ticket (eventschedule_id, user_id, ticket_code)
+VALUES 
+(3, 1, '33DFVG5');
+
+--Триггер для автоматического добавления события в категории при создании события
+
+CREATE OR REPLACE FUNCTION add_event_to_category()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO EventCategories(event_id, category_id)
+    VALUES (NEW.id, 1); -- Предполагаем, что 1 - это идентификатор категории по умолчанию
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER after_insert_event
+AFTER INSERT
+ON Event
+FOR EACH ROW
+EXECUTE FUNCTION add_event_to_category();
+
+INSERT INTO Event (name, description, organizer_id)
+VALUES 
+('New Year', 'Description for new year event', 1);
+
+-- Процедура добавления категории
+
+CREATE OR REPLACE PROCEDURE add_new_category(event_id bigint, category_name varchar)
+AS
+$$
+DECLARE
+    cat_id bigint;
+BEGIN
+    SELECT id
+    INTO cat_id
+    FROM Category
+    WHERE category.name = category_name;
+
+    IF cat_id IS NULL THEN
+        INSERT INTO category(name)
+        VALUES (category_name)
+        RETURNING category.id INTO cat_id;
+    end if;
+
+    INSERT INTO eventcategory(event_id, category_id)
+    VALUES (event_id, category_id);
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--Логгирование регистрации пользователя, где 4/5/6 - id активности "registration"/"delete"/"edit profile"
+
+CREATE OR REPLACE FUNCTION log_action()
+RETURNS TRIGGER AS $$
+BEGIN
+    CASE
+        WHEN TG_OP = 'INSERT' THEN
+            INSERT INTO ActivityLog(user_id, activity_id, date, time)
+            VALUES (NEW.user_id, 4, CURRENT_DATE, CURRENT_TIME);
+            RETURN NEW;
+        WHEN TG_OP = 'DELETE' THEN
+            INSERT INTO ActivityLog(user_id, activity_id, date, time)
+            VALUES (OLD.user_id, 5, CURRENT_DATE, CURRENT_TIME);
+			DELETE FROM Cart
+			WHERE user_id = OLD.user_id;
+            RETURN OLD;
+		WHEN TG_OP = 'UPDATE' THEN
+            INSERT INTO ActivityLog(user_id, activity_id, date, time)
+            VALUES (NEW.user_id, 6, CURRENT_DATE, CURRENT_TIME);
+            RETURN NEW;
+        ELSE
+            RETURN NULL;
+    END CASE;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER after_registration_user
+AFTER INSERT
+ON "User"
+FOR EACH ROW
+EXECUTE FUNCTION log_action();
+
+CREATE OR REPLACE TRIGGER after_delete_user
+AFTER DELETE
+ON "User"
+FOR EACH ROW
+EXECUTE FUNCTION log_action();
+
+CREATE OR REPLACE TRIGGER after_update_user
+AFTER UPDATE
+ON "User"
+FOR EACH ROW
+EXECUTE FUNCTION log_action();
+
+INSERT INTO "User" (name, email, password, role_id)
+VALUES 
+('Mary M', 'maryMi@example.com', 'sdfg345', 1);
+
+-- Триггер для создания корзины при добавлении пользователя
+CREATE OR REPLACE FUNCTION create_user_cart()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO Cart (user_id, result_cost)
+    VALUES (NEW.id, 0); -- 0 - начальная стоимость корзины
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER after_insert_user
+AFTER INSERT
+ON "User"
+FOR EACH ROW
+EXECUTE FUNCTION create_user_cart();
+
+-- Триггер для удаления билетов и очистки корзины после совершения платежа
+CREATE OR REPLACE FUNCTION process_payment()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Удаление билетов пользователя
+    DELETE FROM Ticket
+    WHERE user_id = NEW.user_id;
+
+  -- Обнуление result_cost корзины пользователя
+    UPDATE Cart
+    SET result_cost = 0
+    WHERE user_id = NEW.user_id;
+	
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER after_payment
+AFTER INSERT
+ON Payment
+FOR EACH ROW
+EXECUTE FUNCTION process_payment();
+
+--Удаление записей в журнале активности связанных с удаленным пользователем
+CREATE OR REPLACE FUNCTION delete_activity_log()
+RETURNS TRIGGER AS $$
+BEGIN
+    DELETE FROM ActivityLog
+    WHERE user_id = OLD.id;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER after_delete_user_activity_log
+AFTER DELETE
+ON "User"
+FOR EACH ROW
+EXECUTE FUNCTION delete_activity_log();
+

@@ -1,0 +1,83 @@
+-- Вывод всех событий + слияние с таблицей User, который является организатором мероприятия
+SELECT Event.*, "User".name AS organizer_name
+FROM Event
+JOIN "User" ON Event.organizer_id = "User".id;
+
+-- Вывод всех пользователей без паролей, с названием их ролей
+SELECT "User".id, "User".name, "User".email, "User".role_id, Role.name AS role_name
+FROM "User"
+JOIN Role ON Role.id = "User".role_id;
+
+-- Вывод всех пользователей
+SELECT "User".*
+FROM "User"
+
+-- Получение событий по категориям
+SELECT Event.*
+FROM Event
+JOIN EventCategories ON Event.id = EventCategories.event_id
+JOIN Category ON EventCategories.category_id = Category.id
+WHERE Category.name = 'Category 1';
+
+-- Получение пользователей по ролям
+SELECT "User".*
+FROM "User"
+WHERE "User".role_id = 1;
+
+-- Получение активностей по user_id
+SELECT ActivityLog.*
+FROM ActivityLog
+WHERE user_id = 1; -- Замените на нужный user_id
+
+-- Получение отзывов по event_id
+SELECT Review.*
+FROM Review
+WHERE event_id = 1; -- Замените на нужный event_id
+
+-- Получение событий, организованных определенным пользователем
+SELECT Event.*
+FROM Event
+WHERE organizer_id = 1; -- Замените на нужный user_id
+
+-- Получение всех отзывов, оставленных определенным пользователем
+SELECT Review.*
+FROM Review
+WHERE user_id = 3; -- Замените на нужный user_id
+
+-- Получение событий, на которые куплены билеты определенным пользователем
+SELECT Event.*
+FROM Event
+JOIN Ticket ON Event.id = Ticket.event_id
+WHERE Ticket.user_id = 1; -- Замените на нужный user_id
+
+-- Получение всех пользователей, которые оставили отзывы на определенное событие
+SELECT "User".*
+FROM "User"
+JOIN Review ON "User".id = Review.user_id
+WHERE Review.event_id = 1; -- Замените на нужный event_id
+
+-- Удаление пользователя по имени
+DELETE FROM "User"
+WHERE name = 'имя_пользователя';
+
+-- Удаление события по имени
+DELETE FROM Event
+WHERE name = 'название_события';
+
+-- Изменение данных пользователя по id
+UPDATE "User"
+SET name = 'Новое имя', email = 'новый_email@example.com', password = 'новый_пароль'
+WHERE id = 1;
+
+-- Изменение данных события по id
+UPDATE Event
+SET name = 'Новое название события', description = 'Новое описание события'
+WHERE id = 1;
+
+-- Сортировка всех событий по дате
+SELECT * FROM Event
+ORDER BY start_date ASC;
+
+-- Сортировка пользователей по имени
+SELECT * FROM "User"
+ORDER BY name ASC;
